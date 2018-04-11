@@ -68,9 +68,8 @@ class Instagram:
             return self.session.request(method, f'{self.base_url}{endpoint}', params=params, data=data, json=json, headers=headers)
 
     def login(self):
-        self.generate_signed_body({"reg_login":"0","password":self.password,"device_id":self.device_id,"username":self.username,"adid":"uuid-adid","login_attempt_count":"0","phone_id":self.device_id})
         data = {
-            'signed_body':        '2dbe11e6c15796032490782bba169043d90aad4cec450ae138c4a892c3d77ab6.{"reg_login":"0","password":"'+self.password+'","device_id":"'+self.device_id+'","username":"'+self.username+'","adid":"uuid-adid","login_attempt_count":"0","phone_id":"'+self.device_id+'"}',
+            'signed_body':         self.generate_signed_body({"reg_login":"0","password":self.password,"device_id":self.device_id,"username":self.username,"adid":"uuid-adid","login_attempt_count":"0","phone_id":self.device_id}),
             'ig_sig_key_version': '5'
 
         }
@@ -87,7 +86,7 @@ class Instagram:
 
     def change_password(self, new_password):
         data = {
-            'signed_body':        '05d91a32ac739074aaa749cd97459a5883878f49c0d0ecc996707f93814ee328.{"_csrftoken":"'+self.csrftoken+'","old_password":"'+self.password+'","new_password1":"'+new_password+'","_uuid":"'+self.device_id+'","new_password2":"'+new_password+'","_uid":"'+self.pk+'"}',
+            'signed_body':        self.generate_signed_body({"_csrftoken":self.csrftoken,"old_password":self.password,"new_password1":new_password,"_uuid":self.device_id,"new_password2":new_password,"_uid":self.pk}),
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', 'accounts/change_password/', data=data, headers=self.headers)
@@ -319,14 +318,14 @@ class Instagram:
 
     def mute_real(self, user_pk):
         data = {
-            'signed_body':        '225c8229b1875791936b248baf0bfe2e65a11eed56c701ffb2b94dc8034db4d1.{"tray_position":"13","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","_csrftoken":"'+self.csrftoken+'","reel_type":"story"}',
+            'signed_body': self.generate_signed_body({"tray_position":"13","_uuid":self.device_id,"_uid":self.pk,"_csrftoken":self.csrftoken,"reel_type":"story"})
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'friendships/mute_friend_reel/{user_pk}/', data=data, headers=self.headers)
 
     def follow(self, user_pk):
         data = {
-            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}',
+            'signed_body':        self.generate_signed_body({"_csrftoken":self.csrftoken,"_uuid":self.device_id,"_uid":self.pk,"user_id":user_pk})
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'friendships/create/{user_pk}/', data=data, headers=self.headers)
