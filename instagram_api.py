@@ -545,4 +545,4 @@ class Instagram:
 IG = Instagram('USERNAME','PASSWORD')
 IG.login()
 reordered_dict = IG.reorder_signed_body({"user_id":"15125250","adid":"uuid-adid","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"MYlOGInNoNCe"})
-print(IG.calculate_hash(json.dumps(d).replace(' ', '')))
+print(IG.calculate_hash(json.dumps(reordered_dict).replace(' ', '')))
