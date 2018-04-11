@@ -581,6 +581,7 @@ class Instagram:
         }
         return self.make_request('POST', 'accounts/disable_sms_two_factor/', data=data, headers=self.headers)
 
+#adid is uuid
 IG = Instagram('USERNAME','PASSWORD')
 IG.login()
 print(IG.generate_signed_body({"user_id":"15125250","adid":"uuid-adid","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"MYlOGInNoNCe"}))
