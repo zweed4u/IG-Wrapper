@@ -541,6 +541,40 @@ class Instagram:
         }
         return self.make_request('POST', f'media/{media_id}_{user_pk}/comment/', data=data, headers=self.headers)
 
+    def get_account_security_info(self):
+        data = {
+            'signed_body':       '632a58196d35876d8554476247609f25e86ebb1ff494f99d9f42e8a24a1f33ce.{"_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","_csrftoken":"'+self.csrftoken+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', 'accounts/account_security_info/', data=data, headers=self.headers)
+
+    def send_2FA_activation(self, phone_number):
+        data = {
+            'signed_body':        '49c603982da2cbd5fa0f7e72c08c86b30db76df77081c686a0d5ccfcbc899b0d.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","device_id":"'+self.device_id+'","phone_number":"+1'+phone_number+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', 'accounts/send_two_factor_enable_sms/', data=data, headers=self.headers)
+
+    def enable_2FA(self, phone_number, verification_number):
+        data = {
+            'signed_body':        'd9634603c2362b96e323c47e2893bdf291047b5818a1148a27d385036e49ca61.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","device_id":"'+self.device_id+'","phone_number":"+1'+phone_number+'","verification_code":"'+verification_number+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', 'accounts/enable_sms_two_factor/', data=data, headers=self.headers)
+
+    def regenerate_backup_codes(self):
+        data = {
+            'signed_body':        '632a58196d35876d8554476247609f25e86ebb1ff494f99d9f42e8a24a1f33ce.{"_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","_csrftoken":"'+self.csrftoken+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', 'accounts/regen_backup_codes/', data=data, headers=self.headers)
+
+    def disable_2FA(self):
+        data = {
+            'signed_body':        '632a58196d35876d8554476247609f25e86ebb1ff494f99d9f42e8a24a1f33ce.{"_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","_csrftoken":"'+self.csrftoken+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', 'accounts/disable_sms_two_factor/', data=data, headers=self.headers)
 
 IG = Instagram('USERNAME','PASSWORD')
 IG.login()
