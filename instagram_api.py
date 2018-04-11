@@ -56,6 +56,11 @@ class Instagram:
             reordered_dict[t[0]] = signed_body_json[t[0]]
         return reordered_dict
 
+    def generate_signed_body(self, signed_body_dict):
+        reordered_stringed_dict = json.dumps(self.reorder_signed_body(signed_body_dict)).replace(' ', '')
+        signed_hash = self.calculate_hash(reordered_stringed_dict)
+        return f'{signed_hash}.{reordered_stringed_dict}'
+
     def make_request(self, method, endpoint, params=None, data=None, json=None, headers=None, json_content=True):
         if json_content is True:
             return self.session.request(method, f'{self.base_url}{endpoint}', params=params, data=data, json=json, headers=headers).json()
@@ -63,6 +68,7 @@ class Instagram:
             return self.session.request(method, f'{self.base_url}{endpoint}', params=params, data=data, json=json, headers=headers)
 
     def login(self):
+        self.generate_signed_body({"reg_login":"0","password":self.password,"device_id":self.device_id,"username":self.username,"adid":"uuid-adid","login_attempt_count":"0","phone_id":self.device_id})
         data = {
             'signed_body':        '2dbe11e6c15796032490782bba169043d90aad4cec450ae138c4a892c3d77ab6.{"reg_login":"0","password":"'+self.password+'","device_id":"'+self.device_id+'","username":"'+self.username+'","adid":"uuid-adid","login_attempt_count":"0","phone_id":"'+self.device_id+'"}',
             'ig_sig_key_version': '5'
@@ -578,5 +584,4 @@ class Instagram:
 
 IG = Instagram('USERNAME','PASSWORD')
 IG.login()
-reordered_dict = IG.reorder_signed_body({"user_id":"15125250","adid":"uuid-adid","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"MYlOGInNoNCe"})
-print(IG.calculate_hash(json.dumps(reordered_dict).replace(' ', '')))
+print(IG.generate_signed_body({"user_id":"15125250","adid":"uuid-adid","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"MYlOGInNoNCe"}))
