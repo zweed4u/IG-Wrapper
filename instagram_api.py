@@ -1,6 +1,9 @@
 #!/usr/bin/python3
+import sys
+import json
 import uuid
 import requests
+from Crypto.Hash import SHA256, HMAC
 
 
 class Instagram:
@@ -12,6 +15,8 @@ class Instagram:
         self.pk = None
         self.csrftoken = None
         self.base_url = 'https://i.instagram.com/api/v1/'
+        self.secret_key = '109513c04303341a7daf27bb41b268e633b30dcc65a3fe14503f743176113869'
+        self.key_version = '4'
         self.headers = {
             'Host':                           'i.instagram.com',
             'X-IG-Connection-Speed':          '44kbps',
@@ -26,6 +31,32 @@ class Instagram:
             'Connection':                     'keep-alive',
             'X-IG-Capabilities':              '36r/Bw=='
         }
+
+    def calculate_hash(self, message):
+        # json.dumps(dicthere).replace(' ','')
+        # ensure message param is string-ed dict
+        hmac = HMAC.new(self.secret_key.encode(), message.encode(), SHA256)
+        return hmac.hexdigest()
+
+    def reorder_signed_body(self, signed_body_json):
+        # eg. {'login_nonce': 'Mutv0HaL2MPex0Pd63Sz1HAG283NlZxPz8bVy50DEBNJ4pFKpPnNhQp5xFZK6zMn', 'adid': '409DE66D-26AC-463C-BA4C-18AD6A32A1E1', 'user_id': '15125250', 'device_id': 'DADA237D-CB58-4D4D-8096-2F5E172921A3'}
+        # eg. {'login_nonce': 1652791193, 'adid': '2989182', 'user_id': '4147834383', 'device_id': '25209764'}
+        key_association = {}
+        reordered_dict = {}
+        for key in list(signed_body_json.keys()):
+            result = 0
+            for char in key:
+                result = (-result + (result << 5) + ord(char)) & 0xFFFFFFFF
+            if (sys.maxsize > 2**32): # if os is 64 bit
+                if (result > 0x7FFFFFFF):
+                    result -= 0x100000000
+                elif (result < -0x80000000):
+                    result += 0x100000000;
+            key_association[key] = result
+        hash_sorted_keys = sorted(key_association.items(), key=lambda x: x[1])
+        for t in hash_sorted_keys:
+            reordered_dict[t[0]] = signed_body_json[t[0]]
+        return reordered_dict
 
     def make_request(self, method, endpoint, params=None, data=None, json=None, headers=None, json_content=True):
         if json_content is True:
@@ -212,7 +243,7 @@ class Instagram:
     def get_tag_info(self, tag):
         return self.make_request('GET', f'tags/{tag}/info/', headers=self.headers)
 
-    def get_tag_feed(self, tag);
+    def get_tag_feed(self, tag):
         return self.make_request('GET', f'feed/tag/{tag}/', headers=self.headers)        
 
     def search_top(self, search_string):
@@ -238,7 +269,7 @@ class Instagram:
     def get_top_live(self):
         return self.make_request('GET', 'discover/top_live/', headers=self.headers)
 
-    def get news(self):
+    def get_news(self):
         return self.make_request('GET', 'news/', headers=self.headers)
 
     def get_news_log(self):
@@ -298,7 +329,7 @@ class Instagram:
 
     def unfollow(self, user_pk):
         data = {
-            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}'
+            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}',
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'friendships/destroy/{user_pk}/', data=data, headers=self.headers)
@@ -338,14 +369,14 @@ class Instagram:
 
     def block_user(self, user_pk):
         data = {
-            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}'
+            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}',
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'friendships/block/{user_pk}/', data=data, headers=self.headers)
 
     def unblock_user(self, user_pk):
         data = {
-            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}'
+            'signed_body':        '7c646a4d663393cc6d51094b3015ab61f536efedf001209dd14de641f97993e5.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","user_id":"'+user_pk+'"}',
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'friendships/unblock/{user_pk}/', data=data, headers=self.headers)
@@ -375,7 +406,7 @@ class Instagram:
 
     def create_dm_thread(self, user_pk):
         data = {
-            'signed_body':        'c523c2aac3f3ea68f6ee427edd7c64ccbf9268975d98870490c4f8c8e95ecc36.{"_csrftoken":"'+self.csrftoken+'","use_unified_inbox":"true","_uuid":"'+self.device_id+'","recipient_users":"[\"'+user_pk+'\"]","_uid":"'+self.pk+'"}'
+            'signed_body':        'c523c2aac3f3ea68f6ee427edd7c64ccbf9268975d98870490c4f8c8e95ecc36.{"_csrftoken":"'+self.csrftoken+'","use_unified_inbox":"true","_uuid":"'+self.device_id+'","recipient_users":"[\"'+user_pk+'\"]","_uid":"'+self.pk+'"}',
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', 'direct_v2/create_group_thread/', data=data, headers=self.headers)
@@ -414,7 +445,7 @@ class Instagram:
         data = {
             '_csrftoken': self.csrftoken,
             '_uuid':      self.device_id,
-            'section':    'suggested'
+            'section':    'suggested',
             'user':       '["'+user_pk+'"]'
         }
         return self.make_request('POST', 'fbsearch/hide_search_entities/', data=data, headers=self.headers)
@@ -439,6 +470,82 @@ class Instagram:
         }
         return self.make_request('POST', f'friendships/approve/{user_pk}/', data=data, headers=self.headers)
 
+    def save_post(self, media_id, user_pk):
+        data = {
+            'signed_body':        '8feb3356e5a0ebe2b1dc283f82aa0a0eafde9ab5a43cd503c0350ca5b3e677ed.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","module_name":"single_feed_profile"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/save/', data=data, headers=self.headers)
+
+    def unsave_post(self, media_id, user_pk):
+        data = {
+            'signed_body':        '8feb3356e5a0ebe2b1dc283f82aa0a0eafde9ab5a43cd503c0350ca5b3e677ed.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","module_name":"single_feed_profile"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/unsave/', data=data, headers=self.headers)
+
+    def like_post(self, media_id, user_pk, double_tapped):
+        data = {
+            'signed_body':        '516c1a936ab571a0835b0d7eca89521d02705144178139952b291332cfdcad9f.{"_csrftoken":"'+self.csrftoken+'","module_name":"photo_view","media_id":"'+media_id+'_'+user_pk+'","user_id":"'+user_pk+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'"}',
+            'ig_sig_key_version': '5'
+        }
+        query_string_params = {
+            'd': str(str(double_tapped) == 'True')
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/like/', params=query_string_params, data=data, headers=self.headers)
+
+    def unlike_post(self, media_id, user_pk, double_tapped):
+        data = {
+            'signed_body':        '516c1a936ab571a0835b0d7eca89521d02705144178139952b291332cfdcad9f.{"_csrftoken":"'+self.csrftoken+'","module_name":"photo_view","media_id":"'+media_id+'_'+user_pk+'","user_id":"'+user_pk+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/unlike/', data=data, headers=self.headers)
+
+    def comment(self, media_id, user_pk, comment_text):
+        data = {
+            'signed_body':        'ee36a513b4309730b7f79bf0d2418f181d225c08ff32c42e0490224bd678237e.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","comment_text":"'+comment_text+'","idempotence_token":"fca63075a0ff4116938fc181435247c5","containermodule":"comments_v2_single_feed_profile"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/comment/', data=data, headers=self.headers)
+
+    def like_comment(self, comment_id):
+        data = {
+            'signed_body':        '9aa981eb29e4650b845b23648cb61c9a558551411e50bc343e77836cf04d4895.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","comment_id":"'+comment_id+'","_uid":"'+self.pk+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{comment_id}/comment_like/', data=data, headers=self.headers)
+
+    def see_comment_likes(self, comment_id):
+        query_string_params = {
+            'rank_token':  f'{self.pk}_{str(uuid.uuid4()).upper()}',
+            'rank_mutual': '0'
+        }
+        return self.make_request('GET', f'media/{comment_id}/comment_likers/', params=query_string_params, headers=self.headers)
+
+    def unlike_comment(self, comment_id):
+        data = {
+            'signed_body':        '9aa981eb29e4650b845b23648cb61c9a558551411e50bc343e77836cf04d4895.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","comment_id":"'+comment_id+'","_uid":"'+self.pk+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{comment_id}/comment_unlike/', data=data, headers=self.headers)
+
+    def remove_comment(self, media_id, user_pk, comment_id):
+        data = {
+            'signed_body':        '525bcb45d44c66c31cc017539b4ffa5b633f2f0e4b6c58e88c4d495985f3ae86.{"comment_ids_to_delete":"'+comment_id+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","_csrftoken":"'+self.csrftoken+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/comment/bulk_delete/', data=data, headers=self.headers)
+
+    def reply_comment(self, reply_text, parent_comment_id):
+        data = {
+            'signed_body':        '064514fb84b7bbe7fa7be34df4584fe8f90593dcbab59d6dccd46e69af3aa0a0.{"_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","containermodule":"comments_v2_single_feed_profile","comment_text":"'+reply_text+'","replied_to_comment_id":"'+parent_comment_id+'","parent_comment_id":"'+parent_comment_id+'","idempotence_token":"425c62b6a1be47ea9ef4017e870bf964","_csrftoken":"'+self.csrftoken+'"}',
+            'ig_sig_key_version': '5'
+        }
+        return self.make_request('POST', f'media/{media_id}_{user_pk}/comment/', data=data, headers=self.headers)
+
 
 IG = Instagram('USERNAME','PASSWORD')
 IG.login()
+
+d = IG.reorder_signed_body({"user_id":"15125250","adid":"409DE66D-26AC-463C-BA4C-18AD6A32A1E1","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"Mutv0HaL2MPex0Pd63Sz1HAG283NlZxPz8bVy50DEBNJ4pFKpPnNhQp5xFZK6zMn"})
+print(IG.calculate_hash(json.dumps(d).replace(' ', '')))
