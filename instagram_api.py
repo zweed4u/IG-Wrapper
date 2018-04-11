@@ -39,8 +39,6 @@ class Instagram:
         return hmac.hexdigest()
 
     def reorder_signed_body(self, signed_body_json):
-        # eg. {'login_nonce': 'Mutv0HaL2MPex0Pd63Sz1HAG283NlZxPz8bVy50DEBNJ4pFKpPnNhQp5xFZK6zMn', 'adid': '409DE66D-26AC-463C-BA4C-18AD6A32A1E1', 'user_id': '15125250', 'device_id': 'DADA237D-CB58-4D4D-8096-2F5E172921A3'}
-        # eg. {'login_nonce': 1652791193, 'adid': '2989182', 'user_id': '4147834383', 'device_id': '25209764'}
         key_association = {}
         reordered_dict = {}
         for key in list(signed_body_json.keys()):
