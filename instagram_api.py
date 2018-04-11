@@ -64,7 +64,7 @@ class Instagram:
 
     def login(self):
         data = {
-            'signed_body':        '2dbe11e6c15796032490782bba169043d90aad4cec450ae138c4a892c3d77ab6.{"reg_login":"0","password":"'+self.password+'","device_id":"'+self.device_id+'","username":"'+self.username+'","adid":"409DE66D-26AC-463C-BA4C-18AD6A32A1E1","login_attempt_count":"0","phone_id":"'+self.device_id+'"}',
+            'signed_body':        '2dbe11e6c15796032490782bba169043d90aad4cec450ae138c4a892c3d77ab6.{"reg_login":"0","password":"'+self.password+'","device_id":"'+self.device_id+'","username":"'+self.username+'","adid":"uuid-adid","login_attempt_count":"0","phone_id":"'+self.device_id+'"}',
             'ig_sig_key_version': '5'
 
         }
@@ -501,7 +501,7 @@ class Instagram:
 
     def comment(self, media_id, user_pk, comment_text):
         data = {
-            'signed_body':        'ee36a513b4309730b7f79bf0d2418f181d225c08ff32c42e0490224bd678237e.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","comment_text":"'+comment_text+'","idempotence_token":"fca63075a0ff4116938fc181435247c5","containermodule":"comments_v2_single_feed_profile"}',
+            'signed_body':        'ee36a513b4309730b7f79bf0d2418f181d225c08ff32c42e0490224bd678237e.{"_csrftoken":"'+self.csrftoken+'","_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","comment_text":"'+comment_text+'","idempotence_token":"idempotence_token","containermodule":"comments_v2_single_feed_profile"}',
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'media/{media_id}_{user_pk}/comment/', data=data, headers=self.headers)
@@ -536,7 +536,7 @@ class Instagram:
 
     def reply_comment(self, reply_text, parent_comment_id):
         data = {
-            'signed_body':        '064514fb84b7bbe7fa7be34df4584fe8f90593dcbab59d6dccd46e69af3aa0a0.{"_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","containermodule":"comments_v2_single_feed_profile","comment_text":"'+reply_text+'","replied_to_comment_id":"'+parent_comment_id+'","parent_comment_id":"'+parent_comment_id+'","idempotence_token":"425c62b6a1be47ea9ef4017e870bf964","_csrftoken":"'+self.csrftoken+'"}',
+            'signed_body':        '064514fb84b7bbe7fa7be34df4584fe8f90593dcbab59d6dccd46e69af3aa0a0.{"_uuid":"'+self.device_id+'","_uid":"'+self.pk+'","containermodule":"comments_v2_single_feed_profile","comment_text":"'+reply_text+'","replied_to_comment_id":"'+parent_comment_id+'","parent_comment_id":"'+parent_comment_id+'","idempotence_token":"idempotence_token","_csrftoken":"'+self.csrftoken+'"}',
             'ig_sig_key_version': '5'
         }
         return self.make_request('POST', f'media/{media_id}_{user_pk}/comment/', data=data, headers=self.headers)
@@ -544,6 +544,5 @@ class Instagram:
 
 IG = Instagram('USERNAME','PASSWORD')
 IG.login()
-
-d = IG.reorder_signed_body({"user_id":"15125250","adid":"409DE66D-26AC-463C-BA4C-18AD6A32A1E1","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"Mutv0HaL2MPex0Pd63Sz1HAG283NlZxPz8bVy50DEBNJ4pFKpPnNhQp5xFZK6zMn"})
+reordered_dict = IG.reorder_signed_body({"user_id":"15125250","adid":"uuid-adid","device_id":"DADA237D-CB58-4D4D-8096-2F5E172921A3","login_nonce":"MYlOGInNoNCe"})
 print(IG.calculate_hash(json.dumps(d).replace(' ', '')))
