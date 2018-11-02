@@ -318,14 +318,14 @@ class Instagram:
 
     def mute_real(self, user_pk):
         data = {
-            'signed_body': self.generate_signed_body({"tray_position":"13","_uuid":self.device_id,"_uid":self.pk,"_csrftoken":self.csrftoken,"reel_type":"story"})
+            'signed_body': self.generate_signed_body({"tray_position":"13","_uuid":self.device_id,"_uid":self.pk,"_csrftoken":self.csrftoken,"reel_type":"story"}),
             'ig_sig_key_version': self.key_version
         }
         return self.make_request('POST', f'friendships/mute_friend_reel/{user_pk}/', data=data, headers=self.headers)
 
     def follow(self, user_pk):
         data = {
-            'signed_body':        self.generate_signed_body({"_csrftoken":self.csrftoken,"_uuid":self.device_id,"_uid":self.pk,"user_id":user_pk})
+            'signed_body':        self.generate_signed_body({"_csrftoken":self.csrftoken,"_uuid":self.device_id,"_uid":self.pk,"user_id":user_pk}),
             'ig_sig_key_version': self.key_version
         }
         return self.make_request('POST', f'friendships/create/{user_pk}/', data=data, headers=self.headers)
