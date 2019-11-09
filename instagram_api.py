@@ -674,31 +674,34 @@ class Instagram:
         }
         return self.make_request("POST", "accounts/disable_sms_two_factor/", data=data, headers=self.headers)
 
-    def print_users_recent_posts(self, pk):
+    def get_users_recent_posts(self, pk):
+        recent_posts = {}
         post_number = 1
         for item in IG.get_users_feed(user_pk)["items"]:
-            print(f"Post #{post_number}:")
+            carousel_media = []
             if item.get("carousel_media") is not None:
                 # multiple media post
                 for media in item.get("carousel_media"):
                     if media.get("video_duration") is None:  # TODO use media_type 1=image, 2=video
                         # post is an image
-                        print(media["image_versions2"]["candidates"][0]["url"])
+                        carousel_media.append(media["image_versions2"]["candidates"][0]["url"])
                     else:
-                        print(media["video_versions"][0]["url"])
+                        carousel_media.append(media["video_versions"][0]["url"])
+                recent_posts.update({post_number: carousel_media})
             elif item.get("video_duration") is None:
                 # post is an image
-                print(item["image_versions2"]["candidates"][0]["url"])
+                recent_posts.update({post_number: item["image_versions2"]["candidates"][0]["url"]})
             else:
-                print(item["video_versions"][0]["url"])
-            print()
+                recent_posts.update({post_number: item["video_versions"][0]["url"]})
             post_number += 1
+        return recent_posts
 
 
 # adid is uuid
+# TODO make use of config to fetch credentials and add cfg to gitignore
 IG = Instagram("USERNAME", "PASSWORD")
 IG.login()
 search_results = IG.search_top("zweed4u")
 top_result = search_results["list"][0]  # first result of the search
 user_pk = top_result["user"]["pk"]
-IG.print_users_recent_posts(user_pk)
+print(json.dumps(IG.get_users_recent_posts(user_pk), indent=4))
