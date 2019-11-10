@@ -703,9 +703,9 @@ class Instagram:
 
 root_directory = os.getcwd()
 cfg = configparser.ConfigParser()
-configFilePath = os.path.join(root_directory, 'config.cfg')
+configFilePath = os.path.join(root_directory, "config.cfg")
 cfg.read(configFilePath)
-username, password = cfg.get('login', 'username'), cfg.get('login', 'password')
+username, password = cfg.get("login", "username"), cfg.get("login", "password")
 
 IG = Instagram(username, password)
 IG.login()
