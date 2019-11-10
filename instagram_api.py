@@ -1,8 +1,10 @@
 #!/usr/bin/python3
+import os
 import sys
 import json
 import uuid
 import requests
+import configparser
 from Crypto.Hash import SHA256, HMAC
 
 
@@ -698,8 +700,14 @@ class Instagram:
 
 
 # adid is uuid
-# TODO make use of config to fetch credentials and add cfg to gitignore
-IG = Instagram("USERNAME", "PASSWORD")
+
+root_directory = os.getcwd()
+cfg = configparser.ConfigParser()
+configFilePath = os.path.join(root_directory, 'config.cfg')
+cfg.read(configFilePath)
+username, password = cfg.get('login', 'username'), cfg.get('login', 'password')
+
+IG = Instagram(username, password)
 IG.login()
 search_results = IG.search_top("zweed4u")
 top_result = search_results["list"][0]  # first result of the search
