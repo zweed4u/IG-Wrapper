@@ -151,7 +151,7 @@ class Instagram:
 
         self.pk = str(login_response.json()["logged_in_user"]["pk"])
         self.csrftoken = login_response.cookies["csrftoken"]
-        return login_response
+        return login_response.json()
 
     def logout(self):
         data = {"device_id": self.device_id}
@@ -773,6 +773,7 @@ class Instagram:
             ),
             "ig_sig_key_version": self.key_version,
         }
+        print(f"media/{media_id}_{user_pk}/unsave/")
         return self.make_request(
             "POST",
             f"media/{media_id}_{user_pk}/unsave/",
@@ -1047,4 +1048,18 @@ IG.login()
 search_results = IG.search_top("zweed4u")
 top_result = search_results["list"][0]  # first result of the search
 user_pk = top_result["user"]["pk"]
-print(json.dumps(IG.get_users_recent_posts(user_pk), indent=4))
+# print(json.dumps(IG.get_users_recent_posts(user_pk), indent=4))
+
+import time
+
+saved_posts = IG.get_all_saved()
+while len(saved_posts["items"]):
+    for saved_post in saved_posts["items"]:
+        print(f"Removing ...")
+        # pk , id.split(_)[1]
+        IG.unsave_post(
+            saved_post["media"]["pk"], saved_post["media"]["id"].split("_")[1]
+        )
+    print("Fetching next batch of saved posts and sleeping to avoid rate limiting...")
+    saved_posts = IG.get_all_saved()
+    time.sleep(5)
